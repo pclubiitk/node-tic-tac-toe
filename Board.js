@@ -16,7 +16,21 @@ socket.on('start', function(data){
     symbol = data.symbol;
     display("Game Started. Make your move");
   }
-  else display("Game Started. Waiting for other player's move");
+  else {
+    symbol = 'O';
+    display("Game Started. Waiting for other player's move");
+  }
+});
+
+socket.on('move', function(data){
+  console.log(data);
+  var opponent_symbol = (symbol == 'X') ? 'O' : 'X';
+  var selector = data.row + "-" + data.col;
+  document.getElementById(selector).innerHTML = opponent_symbol;
+  moves[data.row - 1][data.col - 1] = opponent_symbol;
+  if(iWon(data.row-1, data.col-1)) display("You loose");
+  else if(gameOver()==true) display("Nobody Won");
+  else { turn = true; display("Your turn");}
 });
 
 var board = document.getElementById("board");
@@ -33,12 +47,12 @@ board.onclick = function(event) {
 
     //Disable his turn
     turn = false;
-  display("Waiting for other player's move");
-    socket.emit('move', {x: row, y: col});
+    display("Waiting for other player's move");
+    socket.emit('move', {row: row, col: col});
 
     //Check if this player Wins
-    if(iWon(row-1, col-1)) display("You won");
-    else if(gameOver()==true) display("Nobody Won");
+    if(iWon(row-1, col-1)) {display("You won");}
+    else if(gameOver()==true) {display("Nobody Won");}
   }
 }
 
@@ -53,6 +67,7 @@ function gameOver() {
 
 function iWon(i, j) {
   var thisMove = moves[i][j];
+  console.log(moves);
   //Check for row first
   if (moves[i][0] == moves[i][1] && moves[i][1] == moves[i][2])
     return true;

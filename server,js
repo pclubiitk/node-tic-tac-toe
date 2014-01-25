@@ -50,14 +50,18 @@ function onSocketConnection(client) {
   if(player1 == 0) {
     client.emit("msg", {body: "Waiting for other player"});
     player1 = client;
+    client.on("move", player1Move);
   }
   else if(player2 == 0) {
     player2 = client;
     player1.emit("start", {myTurn: true, symbol: 'X'});
     player2.emit("start", {myTurn: false, symbol: 'O'});
+    client.on("move", player2Move);
   }
   else client.emit("msg", {body: "No room for more players"});
 
+  // Listen for client disconnected
+  client.on("disconnect", onClientDisconnect);
 };
 
 // Socket client has disconnected
@@ -66,7 +70,13 @@ function onClientDisconnect() {
 
 };
 
+function player1Move(data) {
+  player2.emit('move', data);
+}
 
+function player2Move(data) {
+  player1.emit('move', data);
+}
 /**************************************************
 ** RUN THE GAME
 **************************************************/
