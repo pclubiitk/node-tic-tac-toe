@@ -15,6 +15,9 @@ var socket,   // Socket controller
 ** GAME INITIALISATION
 **************************************************/
 function init() {
+  //Initialise players
+  player1 = player2 = 0;
+
    // Set up Socket.IO to listen on port 8000
   socket = io.listen(8000);
 
@@ -44,8 +47,16 @@ var setEventHandlers = function() {
 function onSocketConnection(client) {
   console.log("New player has connected: "+client.id);
 
-  // Listen for client disconnected
-  client.on("disconnect", onClientDisconnect);
+  if(player1 == 0) {
+    client.emit("msg", {body: "Waiting for other player"});
+    player1 = client;
+  }
+  else if(player2 == 0) {
+    player2 = client;
+    player1.emit("start", {myTurn: true, symbol: 'X'});
+    player2.emit("start", {myTurn: false, symbol: 'O'});
+  }
+  else client.emit("msg", {body: "No room for more players"});
 
 };
 

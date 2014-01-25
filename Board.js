@@ -1,18 +1,44 @@
+var socket = io.connect("http://localhost", {port: 8000, transports: ["websocket"]});
+
+
+var gameStarted = false;
+    turn = false;
+    symbol = '';
+
+socket.on('msg', function(data){
+  display(data.body);
+});
+
+socket.on('start', function(data){
+  gameStarted = true;
+  if(data.myTurn) {
+    turn = true;
+    symbol = data.symbol;
+    display("Game Started. Make your move");
+  }
+  else display("Game Started. Waiting for other player's move");
+});
+
 var board = document.getElementById("board");
 
-var turn = 'X'
 var moves = [[0,0,0],[0,0,0],[0,0,0]];
 
 board.onclick = function(event) {
   var row = event.target.getAttribute('data-row'),
       col = event.target.getAttribute('data-column');
 
-  if(moves[row-1][col-1] == 0) {
-    event.target.innerHTML = turn;
-    moves[row-1][col-1] = turn;
-    if(playerWon(row-1, col-1)) display("Player " + turn + " won");
+  if(gameStarted && turn && moves[row-1][col-1] == 0) {
+    event.target.innerHTML = symbol;
+    moves[row-1][col-1] = symbol;
+
+    //Disable his turn
+    turn = false;
+  display("Waiting for other player's move");
+    socket.emit('move', {x: row, y: col});
+
+    //Check if this player Wins
+    if(iWon(row-1, col-1)) display("You won");
     else if(gameOver()==true) display("Nobody Won");
-    turn = (turn == 'X') ? 'O' : 'X';
   }
 }
 
@@ -25,7 +51,7 @@ function gameOver() {
   return true;
 }
 
-function playerWon(i, j) {
+function iWon(i, j) {
   var thisMove = moves[i][j];
   //Check for row first
   if (moves[i][0] == moves[i][1] && moves[i][1] == moves[i][2])
