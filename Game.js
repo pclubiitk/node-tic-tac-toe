@@ -1,0 +1,1 @@
+var socket = io.connect("http://localhost", {port: 8000, transports: ["websocket"]});

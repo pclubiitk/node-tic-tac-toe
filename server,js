@@ -1,0 +1,62 @@
+/**************************************************
+** NODE.JS REQUIREMENTS
+**************************************************/
+var io = require("socket.io");        // Socket.IO
+
+
+/**************************************************
+** GAME VARIABLES
+**************************************************/
+var socket,   // Socket controller
+  player1, player2;
+
+
+/**************************************************
+** GAME INITIALISATION
+**************************************************/
+function init() {
+   // Set up Socket.IO to listen on port 8000
+  socket = io.listen(8000);
+
+  // Configure Socket.IO
+  socket.configure(function() {
+    // Only use WebSockets
+    socket.set("transports", ["websocket"]);
+
+    // Restrict log output
+    socket.set("log level", 2);
+  });
+
+  // Start listening for events
+  setEventHandlers();
+};
+
+
+/**************************************************
+** GAME EVENT HANDLERS
+**************************************************/
+var setEventHandlers = function() {
+  // Socket.IO
+  socket.sockets.on("connection", onSocketConnection);
+};
+
+// New socket connection
+function onSocketConnection(client) {
+  console.log("New player has connected: "+client.id);
+
+  // Listen for client disconnected
+  client.on("disconnect", onClientDisconnect);
+
+};
+
+// Socket client has disconnected
+function onClientDisconnect() {
+  console.log("Player has disconnected: "+this.id);
+
+};
+
+
+/**************************************************
+** RUN THE GAME
+**************************************************/
+init();
